@@ -53,11 +53,19 @@ class ChecklistService:
     
     def get_checklists(self) -> List[Checklist]:
         """Get all checklists."""
-        return self.db.query(Checklist).all()
+        from sqlalchemy.orm import joinedload
+        return self.db.query(Checklist).options(
+            joinedload(Checklist.questions),
+            joinedload(Checklist.conditions)
+        ).all()
     
     def get_checklist(self, checklist_id: str) -> Optional[Checklist]:
         """Get a specific checklist."""
-        return self.db.query(Checklist).filter(Checklist.id == checklist_id).first()
+        from sqlalchemy.orm import joinedload
+        return self.db.query(Checklist).options(
+            joinedload(Checklist.questions),
+            joinedload(Checklist.conditions)
+        ).filter(Checklist.id == checklist_id).first()
     
     def update_checklist(self, checklist_id: str, checklist_data: ChecklistUpdate) -> Optional[Checklist]:
         """Update a checklist."""
@@ -105,11 +113,59 @@ class ChecklistService:
         return checklist
     
     def delete_checklist(self, checklist_id: str) -> bool:
-        """Delete a checklist."""
+        """Delete a checklist and all related data."""
         checklist = self.get_checklist(checklist_id)
         if not checklist:
             return False
         
-        self.db.delete(checklist)
-        self.db.commit()
-        return True
+        try:
+            # First, delete all related processing results
+            from src.models.processing_result import ProcessingResult
+            processing_results = self.db.query(ProcessingResult).filter(
+                ProcessingResult.checklist_id == checklist_id
+            ).all()
+            
+            for result in processing_results:
+                # Delete related answers and condition results
+                from src.models.answer import Answer
+                from src.models.condition_result import ConditionResult
+                
+                # Delete answers
+                answers = self.db.query(Answer).filter(
+                    Answer.processing_result_id == result.id
+                ).all()
+                for answer in answers:
+                    self.db.delete(answer)
+                
+                # Delete condition results
+                condition_results = self.db.query(ConditionResult).filter(
+                    ConditionResult.processing_result_id == result.id
+                ).all()
+                for condition_result in condition_results:
+                    self.db.delete(condition_result)
+                
+                # Delete the processing result
+                self.db.delete(result)
+            
+            # Delete all questions and conditions
+            questions = self.db.query(Question).filter(
+                Question.checklist_id == checklist_id
+            ).all()
+            for question in questions:
+                self.db.delete(question)
+            
+            conditions = self.db.query(Condition).filter(
+                Condition.checklist_id == checklist_id
+            ).all()
+            for condition in conditions:
+                self.db.delete(condition)
+            
+            # Finally, delete the checklist itself
+            self.db.delete(checklist)
+            self.db.commit()
+            return True
+            
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error deleting checklist {checklist_id}: {str(e)}")
+            return False

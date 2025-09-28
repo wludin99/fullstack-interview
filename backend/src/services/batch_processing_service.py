@@ -96,7 +96,7 @@ class BatchProcessingService:
                     else:
                         processing_result.status = "completed"
                         # Save answers and condition results
-                        self._save_processing_results(processing_result, llm_result)
+                        self._save_processing_results(processing_result, llm_result, checklist_id)
                     
                     batch_results.append({
                         "id": processing_result.id,
@@ -144,18 +144,44 @@ class BatchProcessingService:
                 results=[]
             )
     
-    def _save_processing_results(self, processing_result: ProcessingResult, llm_result: Dict[str, Any]):
+    def _save_processing_results(self, processing_result: ProcessingResult, llm_result: Dict[str, Any], checklist_id: str):
         """Save answers and condition results from LLM processing."""
         from src.models.answer import Answer
         from src.models.condition_result import ConditionResult
+        from src.models.question import Question
+        from src.models.condition import Condition
+        
+        # Get the actual questions and conditions from the checklist
+        questions = self.db.query(Question).filter(Question.checklist_id == checklist_id).all()
+        conditions = self.db.query(Condition).filter(Condition.checklist_id == checklist_id).all()
+        
+        # Create mapping from LLM IDs to database IDs
+        question_map = {}
+        condition_map = {}
+        
+        # Map questions (q1, q2, etc. to actual question IDs)
+        for i, question in enumerate(questions, 1):
+            question_map[f"q{i}"] = question.id
+            question_map[f"question{i}"] = question.id
+            question_map[str(i)] = question.id  # Handle numeric IDs like "1", "2"
+        
+        # Map conditions (c1, c2, etc. to actual condition IDs)
+        for i, condition in enumerate(conditions, 1):
+            condition_map[f"c{i}"] = condition.id
+            condition_map[f"condition{i}"] = condition.id
+            condition_map[str(i)] = condition.id  # Handle numeric IDs like "1", "2"
         
         # Save answers
         if "answers" in llm_result:
             for answer_data in llm_result["answers"]:
+                llm_question_id = answer_data.get("questionId", "")
+                # Map LLM question ID to database question ID
+                db_question_id = question_map.get(llm_question_id, llm_question_id)
+                
                 answer = Answer(
                     id=str(uuid.uuid4()),
                     processing_result_id=processing_result.id,
-                    question_id=answer_data.get("questionId", ""),
+                    question_id=db_question_id,
                     answer_text=answer_data.get("answer", "")
                 )
                 self.db.add(answer)
@@ -163,6 +189,10 @@ class BatchProcessingService:
         # Save condition results
         if "condition_results" in llm_result:
             for condition_data in llm_result["condition_results"]:
+                llm_condition_id = condition_data.get("conditionId", "")
+                # Map LLM condition ID to database condition ID
+                db_condition_id = condition_map.get(llm_condition_id, llm_condition_id)
+                
                 # Ensure result is always a boolean
                 result_value = condition_data.get("result")
                 if result_value is None:
@@ -175,7 +205,7 @@ class BatchProcessingService:
                 condition_result = ConditionResult(
                     id=str(uuid.uuid4()),
                     processing_result_id=processing_result.id,
-                    condition_id=condition_data.get("conditionId", ""),
+                    condition_id=db_condition_id,
                     result=result_value
                 )
                 self.db.add(condition_result)

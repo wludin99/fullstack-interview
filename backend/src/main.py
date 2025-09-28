@@ -85,6 +85,18 @@ async def startup_event():
     logger.info("Starting Tender Checklist API")
     create_tables()
     logger.info("Database tables created")
+    
+    # Seed database with German tender checklists
+    try:
+        from src.database import get_db
+        from src.seed_data import seed_german_checklists
+        
+        db = next(get_db())
+        seed_german_checklists(db)
+        logger.info("German tender checklists seeded successfully")
+    except Exception as e:
+        logger.warning(f"Failed to seed German checklists: {str(e)}")
+        # Don't fail startup if seeding fails
 
 @app.get("/")
 async def root():
