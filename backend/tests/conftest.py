@@ -48,6 +48,21 @@ def client():
     app.dependency_overrides.clear()
 
 
+@pytest.fixture(scope="function")
+def db_session():
+    """Create a database session for testing."""
+    # Create tables
+    Base.metadata.create_all(bind=engine)
+    
+    # Create session
+    session = TestingSessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+        Base.metadata.drop_all(bind=engine)
+
+
 @pytest.fixture(autouse=True)
 def cleanup_uploads():
     """Automatically clean up upload directories after each test."""

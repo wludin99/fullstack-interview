@@ -51,7 +51,11 @@ class TestDocumentProcessingPerformance:
     @pytest.fixture(autouse=True)
     def setup_documents(self):
         """Setup test documents from Tender_documents folder."""
-        self.tender_docs_path = Path(__file__).parent.parent.parent.parent.parent / "Tender_documents"
+        # Get the project root directory (go up to fullstack-interview)
+        current_file = Path(__file__).resolve()
+        # Go up from backend/tests/performance/ to fullstack-interview/
+        project_root = current_file.parent.parent.parent.parent
+        self.tender_docs_path = project_root / "Tender_documents"
         self.test_documents = []
         
         if self.tender_docs_path.exists():

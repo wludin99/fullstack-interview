@@ -74,7 +74,7 @@ class TestRealGermanTenderDocuments:
         assert response.status_code == 201
         data = response.json()
         assert "id" in data
-        assert data["filename"] == test_doc.name
+        assert data["original_name"] == test_doc.name  # Check original_name instead of filename
         assert data["status"] == "uploaded"
     
     def test_process_real_german_tender_document(self, client):

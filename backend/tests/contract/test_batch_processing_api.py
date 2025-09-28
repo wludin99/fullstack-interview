@@ -1,6 +1,7 @@
 """Contract tests for batch processing API endpoints."""
 
 import pytest
+from unittest.mock import patch, Mock
 from fastapi.testclient import TestClient
 from src.main import app
 from src.database import get_db

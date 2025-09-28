@@ -200,11 +200,14 @@ def test_processing_result_with_answers_and_conditions(db_session, sample_proces
 
 def test_processing_result_created_at_timestamp():
     """Test processing result created_at timestamp."""
+    from datetime import datetime
+    
     result = ProcessingResult(
         id=str(uuid.uuid4()),
         checklist_id=str(uuid.uuid4()),
         document_id=str(uuid.uuid4()),
-        status="completed"
+        status="completed",
+        created_at=datetime.now()
     )
     
     # Check that created_at is set

@@ -7,9 +7,26 @@ from src.database import get_db
 from src.models.checklist import Checklist
 from src.models.question import Question
 from src.models.condition import Condition
+from tests.conftest import TestingSessionLocal
 import uuid
 
 client = TestClient(app)
+
+def override_get_db():
+    """Override database dependency for testing."""
+    # Create tables on the test engine
+    from tests.conftest import engine
+    from src.database import Base
+    Base.metadata.create_all(bind=engine)
+    
+    try:
+        db = TestingSessionLocal()
+        yield db
+    finally:
+        db.close()
+
+# Override the database dependency
+app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture
 def sample_template(db_session):
