@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import type { Document } from '../services/api';
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 
 interface BatchDocumentSelectorProps {
   documents: Document[];
@@ -8,7 +7,7 @@ interface BatchDocumentSelectorProps {
   onSelectionChange: (selectedIds: string[]) => void;
   onSelectAll: () => void;
   onDeselectAll: () => void;
-  onDeleteDocument?: (documentId: string) => void;
+  onDeleteDocument?: (documentId: string, documentName: string) => void;
 }
 
 export const BatchDocumentSelector: React.FC<BatchDocumentSelectorProps> = ({
@@ -20,19 +19,9 @@ export const BatchDocumentSelector: React.FC<BatchDocumentSelectorProps> = ({
   onDeleteDocument
 }) => {
   const [filter, setFilter] = useState('');
-  const [deleteDialog, setDeleteDialog] = useState<{
-    isOpen: boolean;
-    documentId: string;
-    documentName: string;
-  }>({
-    isOpen: false,
-    documentId: '',
-    documentName: ''
-  });
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredDocuments = documents.filter(doc =>
-    doc.filename.toLowerCase().includes(filter.toLowerCase())
+    doc.original_name.toLowerCase().includes(filter.toLowerCase())
   );
 
   const handleDocumentToggle = (documentId: string) => {
@@ -44,31 +33,7 @@ export const BatchDocumentSelector: React.FC<BatchDocumentSelectorProps> = ({
     }
   };
 
-  const handleDeleteClick = (documentId: string, documentName: string) => {
-    setDeleteDialog({
-      isOpen: true,
-      documentId,
-      documentName
-    });
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!onDeleteDocument) return;
-    
-    setIsDeleting(true);
-    try {
-      await onDeleteDocument(deleteDialog.documentId);
-      setDeleteDialog({ isOpen: false, documentId: '', documentName: '' });
-    } catch (error) {
-      console.error('Error deleting document:', error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteDialog({ isOpen: false, documentId: '', documentName: '' });
-  };
+  // Remove duplicate delete handling - use parent's delete handler directly
 
   const allSelected = documents.length > 0 && selectedDocuments.length === documents.length;
   // const someSelected = selectedDocuments.length > 0 && selectedDocuments.length < documents.length;
@@ -95,7 +60,7 @@ export const BatchDocumentSelector: React.FC<BatchDocumentSelectorProps> = ({
         </div>
       </div>
 
-      <div className="filter-section">
+      <div className="filter-container">
         <input
           type="text"
           placeholder="Filter documents..."
@@ -133,9 +98,9 @@ export const BatchDocumentSelector: React.FC<BatchDocumentSelectorProps> = ({
                   />
                 </div>
                 <div className="document-info">
-                  <div className="document-name">{document.filename}</div>
+                  <div className="document-name">{document.original_name}</div>
                   <div className="document-status">
-                    Status: <span className={`status-${document.status}`}>{document.status}</span>
+                    <span className="status-badge">{document.status}</span>
                   </div>
                 </div>
                 {onDeleteDocument && (
@@ -143,7 +108,7 @@ export const BatchDocumentSelector: React.FC<BatchDocumentSelectorProps> = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteClick(document.id, document.filename);
+                        onDeleteDocument?.(document.id, document.original_name);
                       }}
                       className="btn btn-danger btn-small"
                       title="Delete document"
@@ -164,15 +129,6 @@ export const BatchDocumentSelector: React.FC<BatchDocumentSelectorProps> = ({
         </div>
       )}
 
-      <DeleteConfirmDialog
-        isOpen={deleteDialog.isOpen}
-        title="Delete Document"
-        message="Are you sure you want to delete this document?"
-        itemName={deleteDialog.documentName}
-        onConfirm={handleDeleteConfirm}
-        onCancel={handleDeleteCancel}
-        isLoading={isDeleting}
-      />
     </div>
   );
 };

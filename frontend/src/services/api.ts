@@ -23,7 +23,11 @@ export interface Condition {
 export interface Document {
   id: string;
   filename: string;
+  original_name: string;
+  file_path: string;
+  file_size: number;
   status: string;
+  uploaded_at: string;
 }
 
 export interface ProcessingResult {
@@ -43,6 +47,20 @@ export interface ProcessingResult {
   }>;
   createdAt: string;
   error?: string;
+}
+
+export interface BatchProcessingResult {
+  id: string;
+  document_id: string;
+  status: string;
+  error?: string;
+}
+
+export interface BatchProcessingResponse {
+  id: string;
+  status: string;
+  message: string;
+  results: BatchProcessingResult[];
 }
 
 export interface BatchProcessingRequest {

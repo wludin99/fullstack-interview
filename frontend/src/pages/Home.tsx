@@ -19,7 +19,11 @@ interface Checklist {
 interface Document {
   id: string;
   filename: string;
+  original_name: string;
+  file_path: string;
+  file_size: number;
   status: string;
+  uploaded_at: string;
 }
 
 interface Results {
@@ -47,6 +51,7 @@ export const Home: React.FC = () => {
   // const [results] = useState<Results | null>(null);
   const [showEditor, setShowEditor] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   // Batch processing state
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
@@ -103,8 +108,32 @@ export const Home: React.FC = () => {
     }
   };
 
-  const handleCreateChecklist = () => {
-    setShowEditor(true);
+  const handleCreateChecklist = async (name: string, description: string, questions: string[], conditions: string[]) => {
+    try {
+      const response = await fetch('http://localhost:8000/api/checklists', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          description,
+          questions: questions.map(q => ({ text: q })),
+          conditions: conditions.map(c => ({ text: c }))
+        }),
+      });
+
+      if (response.ok) {
+        const newChecklist = await response.json();
+        setChecklists(prev => [...prev, newChecklist]);
+        setSuccessMessage('Checklist created successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        setError('Failed to create checklist');
+      }
+    } catch (err) {
+      setError('Error creating checklist');
+    }
   };
 
   const handleSaveChecklist = async (checklistData: any) => {
@@ -175,7 +204,23 @@ export const Home: React.FC = () => {
 
       const result = await response.json();
       console.log('Batch processing result:', result);
-      setBatchResults([result]);
+      // Convert batch response to ProcessingResult format for display
+      const processingResults = result.results.map((res: any) => ({
+        id: res.id,
+        checklistId: selectedChecklistId,
+        documentId: res.document_id,
+        status: res.status,
+        answers: [], // Will be populated when we get detailed results
+        conditions: [],
+        createdAt: new Date().toISOString(),
+        error: res.error
+      }));
+      setBatchResults(processingResults);
+      setSuccessMessage(`Successfully processed ${result.results.length} document(s)!`);
+      setError(null);
+      
+      // Auto-dismiss success message after 5 seconds
+      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err: any) {
       setError(`Batch processing failed: ${err.message}`);
     } finally {
@@ -307,13 +352,16 @@ export const Home: React.FC = () => {
     <div className="home">
       <h1>Tender Checklist App</h1>
       
-      {error && <div className="error">{error}</div>}
+      {error && <div className="error-message">{error}</div>}
+      
+      {successMessage && <div className="success-message">{successMessage}</div>}
 
       {/* Batch Processing Workflow */}
       <div className="batch-workflow">
         <h2>Batch Document Processing</h2>
         
-        <div className="workflow-steps">
+        {/* Horizontal Steps 1-3 */}
+        <div className="workflow-steps-horizontal">
           <div className="step">
             <h2>Step 1: Upload Documents</h2>
             <FileUpload onUpload={handleFileUpload} onError={setError} />
@@ -330,7 +378,7 @@ export const Home: React.FC = () => {
               onSelectionChange={setSelectedDocuments}
               onSelectAll={() => setSelectedDocuments(documents.map(d => d.id))}
               onDeselectAll={() => setSelectedDocuments([])}
-              onDeleteDocument={(documentId) => handleDeleteClick('document', documentId, documents.find(d => d.id === documentId)?.filename || 'Unknown')}
+              onDeleteDocument={(documentId, documentName) => handleDeleteClick('document', documentId, documentName)}
             />
           </div>
 
@@ -341,49 +389,33 @@ export const Home: React.FC = () => {
               selectedChecklistId={selectedChecklistId}
               onChecklistSelect={setSelectedChecklistId}
               onTemplateSelect={handleTemplateEdit}
+              onCreateChecklist={handleCreateChecklist}
+              onEditChecklist={handleTemplateEdit}
+              onDeleteChecklist={(checklistId, checklistName) => handleDeleteClick('checklist', checklistId, checklistName)}
             />
             
-            {/* Manage Checklists section moved here */}
-            <div className="manage-checklists">
-              <h3>Manage Checklists</h3>
-              <button onClick={handleCreateChecklist} className="btn btn-secondary">
-                Create New Checklist
-              </button>
-              {checklists.map((checklist) => (
-                <div key={checklist.id} className="checklist-item">
-                  <h4>{checklist.name}</h4>
-                  <p>{checklist.description}</p>
-                  <div className="checklist-actions">
-                    <button 
-                      onClick={() => handleTemplateEdit(checklist.id)}
-                      className="btn btn-small"
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteClick('checklist', checklist.id, checklist.name)}
-                      className="btn btn-danger btn-small"
-                      title="Delete checklist"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
+        </div>
 
-          <div className="step">
-            <h2>Step 4: Process Documents</h2>
-            <div className="process-controls">
-              <button
-                onClick={handleBatchProcess}
-                disabled={!selectedChecklistId || selectedDocuments.length === 0 || isProcessing}
-                className="btn btn-primary btn-large"
-              >
-                {isProcessing ? 'Processing...' : `Process ${selectedDocuments.length} Document(s)`}
-              </button>
-            </div>
+
+        {/* Step 4: Process Documents */}
+        <div className="step">
+          <h2>Step 4: Process Documents</h2>
+          <div className="process-controls">
+            <button
+              onClick={handleBatchProcess}
+              disabled={!selectedChecklistId || selectedDocuments.length === 0 || isProcessing}
+              className={`btn btn-primary btn-large ${isProcessing ? 'loading' : ''}`}
+            >
+              {isProcessing ? (
+                <>
+                  <span className="loading-spinner">⏳</span>
+                  Processing {selectedDocuments.length} document(s)...
+                </>
+              ) : (
+                `Process ${selectedDocuments.length} Document(s)`
+              )}
+            </button>
           </div>
         </div>
 

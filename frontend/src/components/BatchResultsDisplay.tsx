@@ -30,7 +30,7 @@ export const BatchResultsDisplay: React.FC<BatchResultsDisplayProps> = ({
 
   const getDocumentName = (documentId: string) => {
     const doc = documents.find(d => d.id === documentId);
-    return doc ? doc.filename : 'Unknown Document';
+    return doc ? doc.original_name : 'Unknown Document';
   };
 
   const getOverallStatus = () => {
