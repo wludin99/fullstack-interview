@@ -172,15 +172,10 @@ Important:
     
     def upload_file_to_anthropic(self, file_path: str) -> str:
         """Upload a file to Anthropic File API."""
-        try:
-            with open(file_path, "rb") as file:
-                response = self.client.files.create(
-                    file=file,
-                    purpose="file-extract"
-                )
-            return response.id
-        except Exception as e:
-            raise Exception(f"Failed to upload file to Anthropic: {str(e)}")
+        # Note: Current Anthropic API doesn't support file uploads
+        # This is a placeholder for future implementation
+        # For now, we'll extract text from PDF and use it directly
+        return None
     
     def test_connection(self) -> bool:
         """Test connection to Anthropic API."""

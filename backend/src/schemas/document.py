@@ -21,5 +21,12 @@ class DocumentResponse(BaseModel):
 class DocumentUploadResponse(BaseModel):
     id: str
     filename: str
+    original_name: str
+    file_path: str
+    file_size: int
     status: str
+    uploaded_at: datetime
     message: str
+
+    class Config:
+        from_attributes = True

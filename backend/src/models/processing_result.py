@@ -15,6 +15,7 @@ class ProcessingResult(Base):
     checklist_id = Column(String, ForeignKey("checklists.id"), nullable=False)
     document_id = Column(String, ForeignKey("documents.id"), nullable=False)
     status = Column(String, default="processing")
+    error_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=func.now())
     completed_at = Column(DateTime, nullable=True)
     

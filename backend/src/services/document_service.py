@@ -71,7 +71,11 @@ class DocumentService:
         return DocumentUploadResponse(
             id=document.id,
             filename=document.filename,
+            original_name=document.original_name,
+            file_path=document.file_path,
+            file_size=document.file_size,
             status=document.status,
+            uploaded_at=document.uploaded_at,
             message="Document uploaded successfully"
         )
     
@@ -83,6 +87,7 @@ class DocumentService:
                 id=doc.id,
                 filename=doc.filename,
                 original_name=doc.original_name,
+                file_path=doc.file_path,
                 file_size=doc.file_size,
                 status=doc.status,
                 uploaded_at=doc.uploaded_at
@@ -99,6 +104,15 @@ class DocumentService:
         document = self.get_document(document_id)
         if not document:
             return False
+        
+        # Delete related processing results first
+        from src.models.processing_result import ProcessingResult
+        processing_results = self.db.query(ProcessingResult).filter(
+            ProcessingResult.document_id == document_id
+        ).all()
+        
+        for result in processing_results:
+            self.db.delete(result)
         
         # Delete file from disk
         if os.path.exists(document.file_path):
