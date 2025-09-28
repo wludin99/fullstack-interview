@@ -6,6 +6,7 @@ from src.services.checklist_service import ChecklistService
 from src.models.checklist import Checklist
 from src.models.question import Question
 from src.models.condition import Condition
+from src.schemas.checklist import ChecklistCreate, ChecklistUpdate, QuestionCreate, ConditionCreate
 import uuid
 
 @pytest.fixture
@@ -21,18 +22,18 @@ def checklist_service(mock_db_session):
 @pytest.fixture
 def sample_checklist_data():
     """Sample checklist data for testing."""
-    return {
-        "name": "Test Checklist",
-        "description": "Test description",
-        "questions": [
-            {"text": "Test question 1?", "order_index": 1},
-            {"text": "Test question 2?", "order_index": 2}
+    return ChecklistCreate(
+        name="Test Checklist",
+        description="Test description",
+        questions=[
+            QuestionCreate(text="Test question 1?", orderIndex=1),
+            QuestionCreate(text="Test question 2?", orderIndex=2)
         ],
-        "conditions": [
-            {"text": "Test condition 1", "order_index": 1},
-            {"text": "Test condition 2", "order_index": 2}
+        conditions=[
+            ConditionCreate(text="Test condition 1", orderIndex=1),
+            ConditionCreate(text="Test condition 2", orderIndex=2)
         ]
-    }
+    )
 
 def test_create_checklist_success(checklist_service, mock_db_session, sample_checklist_data):
     """Test successful checklist creation."""
@@ -80,7 +81,7 @@ def test_get_checklist_by_id_success(checklist_service, mock_db_session):
     mock_db_session.query.return_value = mock_query
     
     # Get checklist
-    result = checklist_service.get_checklist_by_id(checklist_id)
+    result = checklist_service.get_checklist(checklist_id)
     
     # Verify result
     assert result is not None
@@ -97,17 +98,22 @@ def test_get_checklist_by_id_not_found(checklist_service, mock_db_session):
     mock_db_session.query.return_value = mock_query
     
     # Get checklist
-    result = checklist_service.get_checklist_by_id(checklist_id)
+    result = checklist_service.get_checklist(checklist_id)
     
     # Verify result
     assert result is None
 
 def test_get_all_checklists_success(checklist_service, mock_db_session):
     """Test successful retrieval of all checklists."""
-    mock_checklists = [
-        Mock(id=str(uuid.uuid4()), name="Checklist 1"),
-        Mock(id=str(uuid.uuid4()), name="Checklist 2")
-    ]
+    mock_checklist1 = Mock()
+    mock_checklist1.id = str(uuid.uuid4())
+    mock_checklist1.name = "Checklist 1"
+    
+    mock_checklist2 = Mock()
+    mock_checklist2.id = str(uuid.uuid4())
+    mock_checklist2.name = "Checklist 2"
+    
+    mock_checklists = [mock_checklist1, mock_checklist2]
     
     # Mock database query
     mock_query = Mock()
@@ -115,7 +121,7 @@ def test_get_all_checklists_success(checklist_service, mock_db_session):
     mock_db_session.query.return_value = mock_query
     
     # Get all checklists
-    result = checklist_service.get_all_checklists()
+    result = checklist_service.get_checklists()
     
     # Verify result
     assert len(result) == 2
@@ -125,10 +131,10 @@ def test_get_all_checklists_success(checklist_service, mock_db_session):
 def test_update_checklist_success(checklist_service, mock_db_session):
     """Test successful checklist update."""
     checklist_id = str(uuid.uuid4())
-    update_data = {
-        "name": "Updated Checklist",
-        "description": "Updated description"
-    }
+    update_data = ChecklistUpdate(
+        name="Updated Checklist",
+        description="Updated description"
+    )
     
     mock_checklist = Mock()
     mock_checklist.id = checklist_id
@@ -153,7 +159,7 @@ def test_update_checklist_success(checklist_service, mock_db_session):
 def test_update_checklist_not_found(checklist_service, mock_db_session):
     """Test checklist update when not found."""
     checklist_id = str(uuid.uuid4())
-    update_data = {"name": "Updated Checklist"}
+    update_data = ChecklistUpdate(name="Updated Checklist")
     
     # Mock database query to return None
     mock_query = Mock()
@@ -211,21 +217,21 @@ def test_checklist_service_error_handling(checklist_service, mock_db_session):
     
     # Test that service handles errors gracefully
     with pytest.raises(Exception):
-        checklist_service.get_all_checklists()
+        checklist_service.get_checklists()
 
 def test_checklist_service_with_german_examples(checklist_service, mock_db_session):
     """Test checklist service with German tender examples."""
-    german_checklist_data = {
-        "name": "Deutsche Ausschreibung Checkliste",
-        "description": "Checkliste für deutsche Vergabeverfahren",
-        "questions": [
-            {"text": "In welcher Form sind die Angebote/Teilnahmeanträge einzureichen?", "order_index": 1},
-            {"text": "Wann ist die Frist für die Einreichung von Bieterfragen?", "order_index": 2}
+    german_checklist_data = ChecklistCreate(
+        name="Deutsche Ausschreibung Checkliste",
+        description="Checkliste für deutsche Vergabeverfahren",
+        questions=[
+            QuestionCreate(text="In welcher Form sind die Angebote/Teilnahmeanträge einzureichen?", orderIndex=1),
+            QuestionCreate(text="Wann ist die Frist für die Einreichung von Bieterfragen?", orderIndex=2)
         ],
-        "conditions": [
-            {"text": "Ist die Abgabefrist vor dem 31.12.2025?", "order_index": 1}
+        conditions=[
+            ConditionCreate(text="Ist die Abgabefrist vor dem 31.12.2025?", orderIndex=1)
         ]
-    }
+    )
     
     # Mock database operations
     mock_db_session.add = Mock()

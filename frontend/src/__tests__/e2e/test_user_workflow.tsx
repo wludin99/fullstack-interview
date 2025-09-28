@@ -1,78 +1,66 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { Home } from '../../pages/Home';
 
 // Mock API server for E2E workflow
 const server = setupServer(
-  rest.get('/api/checklists', (req, res, ctx) => {
-    return res(ctx.json([]));
+  http.get('/api/checklists', () => {
+    return HttpResponse.json([]);
   }),
-  rest.post('/api/checklists', (req, res, ctx) => {
-    return res(
-      ctx.status(201),
-      ctx.json({
-        id: 'checklist-1',
-        name: 'German Tender Checklist',
-        description: 'Test checklist',
-        questions: [
-          {
-            id: 'q1',
-            text: 'What is the deadline?',
-            orderIndex: 1
-          }
-        ],
-        conditions: [
-          {
-            id: 'c1',
-            text: 'Is the document complete?',
-            orderIndex: 1
-          }
-        ]
-      })
-    );
+  http.post('/api/checklists', () => {
+    return HttpResponse.json({
+      id: 'checklist-1',
+      name: 'German Tender Checklist',
+      description: 'Test checklist',
+      questions: [
+        {
+          id: 'q1',
+          text: 'What is the deadline?',
+          orderIndex: 1
+        }
+      ],
+      conditions: [
+        {
+          id: 'c1',
+          text: 'Is the document complete?',
+          orderIndex: 1
+        }
+      ]
+    }, { status: 201 });
   }),
-  rest.post('/api/upload', (req, res, ctx) => {
-    return res(
-      ctx.status(201),
-      ctx.json({
-        id: 'document-1',
-        filename: 'tender.pdf',
-        status: 'uploaded'
-      })
-    );
+  http.post('/api/upload', () => {
+    return HttpResponse.json({
+      id: 'document-1',
+      filename: 'tender.pdf',
+      status: 'uploaded'
+    }, { status: 201 });
   }),
-  rest.post('/api/process/:checklistId', (req, res, ctx) => {
-    return res(
-      ctx.status(202),
-      ctx.json({
-        id: 'result-1',
-        status: 'processing'
-      })
-    );
+  http.post('/api/process/:checklistId', () => {
+    return HttpResponse.json({
+      id: 'result-1',
+      status: 'processing'
+    }, { status: 202 });
   }),
-  rest.get('/api/results/:id', (req, res, ctx) => {
-    return res(
-      ctx.json({
-        id: 'result-1',
-        status: 'completed',
-        answers: [
-          {
-            questionId: 'q1',
-            questionText: 'What is the deadline?',
-            answer: 'December 31, 2024'
-          }
-        ],
-        conditions: [
-          {
-            conditionId: 'c1',
-            conditionText: 'Is the document complete?',
-            result: true
-          }
-        ]
-      })
-    );
+  http.get('/api/results/:id', () => {
+    return HttpResponse.json({
+      id: 'result-1',
+      status: 'completed',
+      answers: [
+        {
+          questionId: 'q1',
+          questionText: 'What is the deadline?',
+          answer: 'December 31, 2024'
+        }
+      ],
+      conditions: [
+        {
+          conditionId: 'c1',
+          conditionText: 'Is the document complete?',
+          result: true
+        }
+      ]
+    });
   })
 );
 
@@ -126,8 +114,8 @@ describe('Complete User Workflow', () => {
 
   it('handles workflow errors gracefully', async () => {
     server.use(
-      rest.post('/api/checklists', (req, res, ctx) => {
-        return res(ctx.status(500), ctx.json({ error: 'Server error' }));
+      http.post('/api/checklists', () => {
+        return HttpResponse.json({ error: 'Server error' }, { status: 500 });
       })
     );
 

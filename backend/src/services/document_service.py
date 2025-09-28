@@ -141,3 +141,14 @@ class DocumentService:
     def is_temp_dir(self) -> bool:
         """Check if this is using a temporary directory."""
         return 'tender_test_uploads_' in self.upload_dir
+    
+    def validate_file_type(self, filename: str) -> bool:
+        """Validate file type is PDF."""
+        if not filename:
+            return False
+        return filename.lower().endswith('.pdf')
+    
+    def validate_file_size(self, size: int) -> bool:
+        """Validate file size is within limits."""
+        max_size = 10 * 1024 * 1024  # 10MB
+        return 0 < size <= max_size

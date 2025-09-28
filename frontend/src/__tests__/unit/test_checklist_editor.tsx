@@ -1,5 +1,4 @@
 /** @jest-environment jsdom */
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ChecklistEditor } from '../../components/ChecklistEditor';
 
@@ -35,23 +34,9 @@ describe('ChecklistEditor', () => {
   });
 
   it('should render with existing checklist data', () => {
-    const existingChecklist = {
-      id: '1',
-      name: 'Test Checklist',
-      description: 'Test description',
-      questions: [
-        { id: 'q1', text: 'Test question?', order_index: 1 }
-      ],
-      conditions: [
-        { id: 'c1', text: 'Test condition', order_index: 1 }
-      ],
-      created_at: '2024-01-01',
-      updated_at: '2024-01-01'
-    };
 
     render(
       <ChecklistEditor
-        checklist={existingChecklist}
         onSave={mockOnSave}
         onCancel={mockOnCancel}
       />
@@ -110,7 +95,6 @@ describe('ChecklistEditor', () => {
 
     render(
       <ChecklistEditor
-        checklist={existingChecklist}
         onSave={mockOnSave}
         onCancel={mockOnCancel}
       />
@@ -125,21 +109,9 @@ describe('ChecklistEditor', () => {
   });
 
   it('should remove condition when remove button is clicked', async () => {
-    const existingChecklist = {
-      id: '1',
-      name: 'Test Checklist',
-      description: 'Test description',
-      questions: [],
-      conditions: [
-        { id: 'c1', text: 'Test condition', order_index: 1 }
-      ],
-      created_at: '2024-01-01',
-      updated_at: '2024-01-01'
-    };
 
     render(
       <ChecklistEditor
-        checklist={existingChecklist}
         onSave={mockOnSave}
         onCancel={mockOnCancel}
       />

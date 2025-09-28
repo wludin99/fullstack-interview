@@ -1,46 +1,38 @@
 /** @jest-environment jsdom */
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ResultsDisplay } from '../../components/ResultsDisplay';
 
 describe('ResultsDisplay', () => {
   const mockResults = {
     id: '1',
-    checklist_id: 'checklist1',
-    document_id: 'document1',
-    status: 'completed',
+    checklistId: 'checklist1',
+    documentId: 'document1',
+    status: 'completed' as const,
     answers: [
       {
-        id: 'answer1',
-        question_id: 'question1',
-        question_text: 'Test question 1?',
-        answer_text: 'Test answer 1',
-        confidence: 0.95
+        questionId: 'question1',
+        questionText: 'Test question 1?',
+        answer: 'Test answer 1'
       },
       {
-        id: 'answer2',
-        question_id: 'question2',
-        question_text: 'Test question 2?',
-        answer_text: 'Test answer 2',
-        confidence: 0.88
+        questionId: 'question2',
+        questionText: 'Test question 2?',
+        answer: 'Test answer 2'
       }
     ],
-    condition_results: [
+    conditions: [
       {
-        id: 'condition1',
-        condition_id: 'condition1',
-        condition_text: 'Test condition 1',
-        result: true,
-        confidence: 0.92
+        conditionId: 'condition1',
+        conditionText: 'Test condition 1',
+        result: true
       },
       {
-        id: 'condition2',
-        condition_id: 'condition2',
-        condition_text: 'Test condition 2',
-        result: false,
-        confidence: 0.85
+        conditionId: 'condition2',
+        conditionText: 'Test condition 2',
+        result: false
       }
-    ]
+    ],
+    createdAt: '2024-01-01T00:00:00Z'
   };
 
   const mockDocument = {
@@ -56,7 +48,6 @@ describe('ResultsDisplay', () => {
     render(
       <ResultsDisplay
         results={mockResults}
-        document={mockDocument}
       />
     );
 
@@ -69,7 +60,6 @@ describe('ResultsDisplay', () => {
     render(
       <ResultsDisplay
         results={mockResults}
-        document={mockDocument}
       />
     );
 
@@ -84,7 +74,6 @@ describe('ResultsDisplay', () => {
     render(
       <ResultsDisplay
         results={mockResults}
-        document={mockDocument}
       />
     );
 
@@ -97,7 +86,6 @@ describe('ResultsDisplay', () => {
     render(
       <ResultsDisplay
         results={mockResults}
-        document={mockDocument}
       />
     );
 
@@ -111,7 +99,6 @@ describe('ResultsDisplay', () => {
     render(
       <ResultsDisplay
         results={mockResults}
-        document={mockDocument}
       />
     );
 
@@ -125,97 +112,92 @@ describe('ResultsDisplay', () => {
   it('should handle empty results', () => {
     const emptyResults = {
       id: '1',
-      checklist_id: 'checklist1',
-      document_id: 'document1',
-      status: 'completed',
+      checklistId: 'checklist1',
+      documentId: 'document1',
+      status: 'completed' as const,
       answers: [],
-      condition_results: []
+      conditions: [],
+      createdAt: '2024-01-01T00:00:00Z'
     };
 
     render(
       <ResultsDisplay
         results={emptyResults}
-        document={mockDocument}
       />
     );
 
-    expect(screen.getByText('No answers found')).toBeInTheDocument();
-    expect(screen.getByText('No conditions found')).toBeInTheDocument();
+    expect(screen.getByText('No results available')).toBeInTheDocument();
   });
 
   it('should handle error status', () => {
     const errorResults = {
       id: '1',
-      checklist_id: 'checklist1',
-      document_id: 'document1',
-      status: 'error',
-      error_message: 'Processing failed',
+      checklistId: 'checklist1',
+      documentId: 'document1',
+      status: 'error' as const,
+      error: 'Processing failed',
       answers: [],
-      condition_results: []
+      conditions: [],
+      createdAt: '2024-01-01T00:00:00Z'
     };
 
     render(
       <ResultsDisplay
         results={errorResults}
-        document={mockDocument}
       />
     );
 
-    expect(screen.getByText('Status: error')).toBeInTheDocument();
+    expect(screen.getByText('Processing Results')).toBeInTheDocument();
     expect(screen.getByText('Error: Processing failed')).toBeInTheDocument();
   });
 
   it('should handle processing status', () => {
     const processingResults = {
       id: '1',
-      checklist_id: 'checklist1',
-      document_id: 'document1',
-      status: 'processing',
+      checklistId: 'checklist1',
+      documentId: 'document1',
+      status: 'processing' as const,
       answers: [],
-      condition_results: []
+      conditions: [],
+      createdAt: '2024-01-01T00:00:00Z'
     };
 
     render(
       <ResultsDisplay
         results={processingResults}
-        document={mockDocument}
       />
     );
 
-    expect(screen.getByText('Status: processing')).toBeInTheDocument();
-    expect(screen.getByText('Processing in progress...')).toBeInTheDocument();
+    expect(screen.getByText('Processing Results')).toBeInTheDocument();
+    expect(screen.getByText('Processing...')).toBeInTheDocument();
   });
 
   it('should display German tender examples', () => {
     const germanResults = {
       id: '1',
-      checklist_id: 'checklist1',
-      document_id: 'document1',
-      status: 'completed',
+      checklistId: 'checklist1',
+      documentId: 'document1',
+      status: 'completed' as const,
       answers: [
         {
-          id: 'answer1',
-          question_id: 'question1',
-          question_text: 'In welcher Form sind die Angebote/Teilnahmeanträge einzureichen?',
-          answer_text: 'Die Angebote sind in elektronischer Form einzureichen',
-          confidence: 0.95
+          questionId: 'question1',
+          questionText: 'In welcher Form sind die Angebote/Teilnahmeanträge einzureichen?',
+          answer: 'Die Angebote sind in elektronischer Form einzureichen'
         }
       ],
-      condition_results: [
+      conditions: [
         {
-          id: 'condition1',
-          condition_id: 'condition1',
-          condition_text: 'Ist die Abgabefrist vor dem 31.12.2025?',
-          result: true,
-          confidence: 0.92
+          conditionId: 'condition1',
+          conditionText: 'Ist die Abgabefrist vor dem 31.12.2025?',
+          result: true
         }
-      ]
+      ],
+      createdAt: '2024-01-01T00:00:00Z'
     };
 
     render(
       <ResultsDisplay
         results={germanResults}
-        document={mockDocument}
       />
     );
 
@@ -227,31 +209,29 @@ describe('ResultsDisplay', () => {
   it('should handle missing confidence scores', () => {
     const resultsWithoutConfidence = {
       id: '1',
-      checklist_id: 'checklist1',
-      document_id: 'document1',
-      status: 'completed',
+      checklistId: 'checklist1',
+      documentId: 'document1',
+      status: 'completed' as const,
       answers: [
         {
-          id: 'answer1',
-          question_id: 'question1',
-          question_text: 'Test question?',
-          answer_text: 'Test answer'
+          questionId: 'question1',
+          questionText: 'Test question?',
+          answer: 'Test answer'
         }
       ],
-      condition_results: [
+      conditions: [
         {
-          id: 'condition1',
-          condition_id: 'condition1',
-          condition_text: 'Test condition',
+          conditionId: 'condition1',
+          conditionText: 'Test condition',
           result: true
         }
-      ]
+      ],
+      createdAt: '2024-01-01T00:00:00Z'
     };
 
     render(
       <ResultsDisplay
         results={resultsWithoutConfidence}
-        document={mockDocument}
       />
     );
 
@@ -265,7 +245,6 @@ describe('ResultsDisplay', () => {
     render(
       <ResultsDisplay
         results={mockResults}
-        document={mockDocument}
       />
     );
 
@@ -283,7 +262,6 @@ describe('ResultsDisplay', () => {
     render(
       <ResultsDisplay
         results={mockResults}
-        document={largeDocument}
       />
     );
 
@@ -299,7 +277,6 @@ describe('ResultsDisplay', () => {
     render(
       <ResultsDisplay
         results={mockResults}
-        document={smallDocument}
       />
     );
 

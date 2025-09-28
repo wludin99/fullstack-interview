@@ -110,7 +110,7 @@ describe('API Service', () => {
         json: async () => mockResponse,
       });
 
-      const result = await api.processDocument('checklist1', 'document1');
+      const result = await api.processDocuments('checklist1', ['document1']);
       
       expect(fetch).toHaveBeenCalledWith('http://localhost:8000/api/process/checklist1', {
         method: 'POST',
@@ -126,7 +126,7 @@ describe('API Service', () => {
         status: 500,
       });
 
-      await expect(api.processDocument('checklist1', 'document1')).rejects.toThrow('Failed to process document');
+      await expect(api.processDocuments('checklist1', ['document1'])).rejects.toThrow('Failed to process document');
     });
   });
 
@@ -247,7 +247,15 @@ describe('API Service', () => {
         { id: '1', document_id: 'doc1', status: 'completed', error: undefined }
       ];
       const mockDocuments = [
-        { id: 'doc1', filename: 'test.pdf' }
+        { 
+          id: 'doc1', 
+          filename: 'test.pdf',
+          original_name: 'test.pdf',
+          file_path: '/uploads/test.pdf',
+          file_size: 1024000,
+          status: 'uploaded',
+          uploaded_at: '2024-01-01T00:00:00Z'
+        }
       ];
 
       // Mock URL.createObjectURL and document.createElement

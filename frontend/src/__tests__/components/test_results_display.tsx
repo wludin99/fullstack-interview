@@ -41,7 +41,7 @@ describe('ResultsDisplay', () => {
 
     render(<ResultsDisplay results={processingResults} />);
 
-    expect(screen.getByText(/processing/i)).toBeInTheDocument();
+    expect(screen.getByText('Processing...')).toBeInTheDocument();
   });
 
   it('shows error status', () => {
@@ -60,8 +60,8 @@ describe('ResultsDisplay', () => {
   it('displays condition results correctly', () => {
     render(<ResultsDisplay results={mockResults} />);
 
-    const conditionResult = screen.getByText(/is the document complete/i).closest('div');
-    expect(conditionResult).toHaveClass('condition-true'); // Assuming CSS class for styling
+    const conditionResult = screen.getByText('Yes');
+    expect(conditionResult).toHaveClass('condition-true');
   });
 
   it('handles empty results', () => {
