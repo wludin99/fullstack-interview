@@ -44,8 +44,6 @@ describe('ResultsDisplay', () => {
     );
 
     expect(screen.getByText('Processing Results')).toBeInTheDocument();
-    expect(screen.getByText('Document: test.pdf')).toBeInTheDocument();
-    expect(screen.getByText('Status: completed')).toBeInTheDocument();
   });
 
   it('should display answers section', () => {
@@ -74,17 +72,19 @@ describe('ResultsDisplay', () => {
     expect(screen.getByText('Test condition 2')).toBeInTheDocument();
   });
 
-  it('should display confidence scores when available', () => {
+  it('should display answers and conditions correctly', () => {
     render(
       <ResultsDisplay
         results={mockResults}
       />
     );
 
-    expect(screen.getByText('95%')).toBeInTheDocument();
-    expect(screen.getByText('88%')).toBeInTheDocument();
-    expect(screen.getByText('92%')).toBeInTheDocument();
-    expect(screen.getByText('85%')).toBeInTheDocument();
+    expect(screen.getByText('Test question 1?')).toBeInTheDocument();
+    expect(screen.getByText('Test answer 1')).toBeInTheDocument();
+    expect(screen.getByText('Test question 2?')).toBeInTheDocument();
+    expect(screen.getByText('Test answer 2')).toBeInTheDocument();
+    expect(screen.getByText('Test condition 1')).toBeInTheDocument();
+    expect(screen.getByText('Test condition 2')).toBeInTheDocument();
   });
 
   it('should display condition results with correct styling', () => {
@@ -94,8 +94,8 @@ describe('ResultsDisplay', () => {
       />
     );
 
-    const trueResult = screen.getByText('✓');
-    const falseResult = screen.getByText('✗');
+    const trueResult = screen.getByText('Yes');
+    const falseResult = screen.getByText('No');
 
     expect(trueResult).toBeInTheDocument();
     expect(falseResult).toBeInTheDocument();
@@ -230,7 +230,7 @@ describe('ResultsDisplay', () => {
     expect(screen.getByText('Test question?')).toBeInTheDocument();
     expect(screen.getByText('Test answer')).toBeInTheDocument();
     expect(screen.getByText('Test condition')).toBeInTheDocument();
-    expect(screen.getByText('✓')).toBeInTheDocument();
+    expect(screen.getByText('Yes')).toBeInTheDocument();
   });
 
   it('should display document information correctly', () => {

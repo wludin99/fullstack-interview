@@ -3,9 +3,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { FileUpload } from '../../components/FileUpload';
 
 // Mock the API service
+const mockUploadDocument = jest.fn();
 jest.mock('../../services/api', () => ({
   api: {
-    uploadDocument: jest.fn(),
+    uploadDocument: mockUploadDocument,
   }
 }));
 
@@ -26,7 +27,7 @@ describe('FileUpload', () => {
     );
 
     expect(screen.getByText('📁 Choose File')).toBeInTheDocument();
-    expect(screen.getByLabelText('file-input')).toBeInTheDocument();
+    expect(document.querySelector('#file-input')).toBeInTheDocument();
   });
 
   it('should handle file selection', async () => {
@@ -38,7 +39,7 @@ describe('FileUpload', () => {
     );
 
     const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText('file-input');
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [file] } });
 
@@ -57,7 +58,7 @@ describe('FileUpload', () => {
     );
 
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
-    const input = screen.getByLabelText('file-input');
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [file] } });
 
@@ -76,7 +77,7 @@ describe('FileUpload', () => {
 
     // Create a large file (11MB)
     const largeFile = new File(['x'.repeat(11 * 1024 * 1024)], 'large.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText('file-input');
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [largeFile] } });
 
@@ -86,8 +87,8 @@ describe('FileUpload', () => {
   });
 
   it('should upload file when Upload button is clicked', async () => {
-    const { api } = require('../../services/api');
-    api.uploadDocument.mockResolvedValue({ id: '1', filename: 'test.pdf' });
+    await import('../../services/api');
+    mockUploadDocument.mockResolvedValue({ id: '1', filename: 'test.pdf' });
 
     render(
       <FileUpload
@@ -97,24 +98,27 @@ describe('FileUpload', () => {
     );
 
     const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText('file-input');
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [file] } });
 
+    // Wait for the upload button to appear
     await waitFor(() => {
-      const uploadButton = screen.getByText('Upload');
-      fireEvent.click(uploadButton);
+      expect(screen.getByText('Upload')).toBeInTheDocument();
     });
 
+    // Click the upload button
+    const uploadButton = screen.getByText('Upload');
+    fireEvent.click(uploadButton);
+
     await waitFor(() => {
-      expect(api.uploadDocument).toHaveBeenCalledWith(file);
-      expect(mockOnUpload).toHaveBeenCalledWith({ id: '1', filename: 'test.pdf' });
+      expect(mockOnUpload).toHaveBeenCalledWith(file);
     });
   });
 
   it('should handle upload errors', async () => {
-    const { api } = require('../../services/api');
-    api.uploadDocument.mockRejectedValue(new Error('Upload failed'));
+    // Make onUpload throw an error
+    mockOnUpload.mockRejectedValue(new Error('Upload failed'));
 
     render(
       <FileUpload
@@ -124,14 +128,18 @@ describe('FileUpload', () => {
     );
 
     const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText('file-input');
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [file] } });
 
+    // Wait for the upload button to appear
     await waitFor(() => {
-      const uploadButton = screen.getByText('Upload');
-      fireEvent.click(uploadButton);
+      expect(screen.getByText('Upload')).toBeInTheDocument();
     });
+
+    // Click the upload button
+    const uploadButton = screen.getByText('Upload');
+    fireEvent.click(uploadButton);
 
     await waitFor(() => {
       expect(mockOnError).toHaveBeenCalledWith('Upload failed. Please try again.');
@@ -139,8 +147,8 @@ describe('FileUpload', () => {
   });
 
   it('should show uploading state during upload', async () => {
-    const { api } = require('../../services/api');
-    api.uploadDocument.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+    await import('../../services/api');
+    mockUploadDocument.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
 
     render(
       <FileUpload
@@ -150,21 +158,28 @@ describe('FileUpload', () => {
     );
 
     const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText('file-input');
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [file] } });
 
+    // Wait for the upload button to appear
     await waitFor(() => {
-      const uploadButton = screen.getByText('Upload');
-      fireEvent.click(uploadButton);
+      expect(screen.getByText('Upload')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Uploading...')).toBeInTheDocument();
+    // Click the upload button
+    const uploadButton = screen.getByText('Upload');
+    fireEvent.click(uploadButton);
+
+    // Check for uploading state
+    await waitFor(() => {
+      expect(screen.getByText('Uploading...')).toBeInTheDocument();
+    });
   });
 
   it('should reset form after successful upload', async () => {
-    const { api } = require('../../services/api');
-    api.uploadDocument.mockResolvedValue({ id: '1', filename: 'test.pdf' });
+    // Make onUpload resolve successfully
+    mockOnUpload.mockResolvedValue({ id: '1', filename: 'test.pdf' });
 
     render(
       <FileUpload
@@ -174,15 +189,20 @@ describe('FileUpload', () => {
     );
 
     const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText('file-input');
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [file] } });
 
+    // Wait for the upload button to appear
     await waitFor(() => {
-      const uploadButton = screen.getByText('Upload');
-      fireEvent.click(uploadButton);
+      expect(screen.getByText('Upload')).toBeInTheDocument();
     });
 
+    // Click the upload button
+    const uploadButton = screen.getByText('Upload');
+    fireEvent.click(uploadButton);
+
+    // Wait for the form to reset after successful upload
     await waitFor(() => {
       expect(screen.queryByText('📄 test.pdf')).not.toBeInTheDocument();
       expect(screen.queryByText('Upload')).not.toBeInTheDocument();
@@ -199,7 +219,7 @@ describe('FileUpload', () => {
 
     const file1 = new File(['test content 1'], 'test1.pdf', { type: 'application/pdf' });
     const file2 = new File(['test content 2'], 'test2.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText('file-input');
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     // First file
     fireEvent.change(input, { target: { files: [file1] } });
@@ -225,7 +245,7 @@ describe('FileUpload', () => {
       />
     );
 
-    const input = screen.getByLabelText('file-input');
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [] } });
 
     expect(screen.queryByText('📄')).not.toBeInTheDocument();
@@ -240,7 +260,7 @@ describe('FileUpload', () => {
     );
 
     const file = new File(['test content'], 'deutsche_ausschreibung.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText('file-input');
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [file] } });
 

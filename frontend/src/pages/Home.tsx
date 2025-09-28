@@ -252,17 +252,45 @@ export const Home: React.FC = () => {
 
       const result = await response.json();
       console.log('Batch processing result:', result);
-      // Convert batch response to ProcessingResult format for display
-      const processingResults = result.results.map((res: any) => ({
-        id: res.id,
-        checklistId: selectedChecklistId,
-        documentId: res.document_id,
-        status: res.status,
-        answers: [], // Will be populated when we get detailed results
-        conditions: [],
-        createdAt: new Date().toISOString(),
-        error: res.error
-      }));
+      
+      // Fetch detailed results for each processing result
+      const processingResults = await Promise.all(
+        result.results.map(async (res: any) => {
+          if (res.status === 'completed') {
+            try {
+              const detailResponse = await fetch(`http://localhost:8000/api/results/${res.id}`);
+              if (detailResponse.ok) {
+                const detailResult = await detailResponse.json();
+                return {
+                  id: res.id,
+                  checklistId: selectedChecklistId,
+                  documentId: res.document_id,
+                  status: res.status,
+                  answers: detailResult.answers || [],
+                  conditions: detailResult.conditions || [],
+                  createdAt: detailResult.createdAt || new Date().toISOString(),
+                  error: res.error
+                };
+              }
+            } catch (err) {
+              console.error('Failed to fetch detailed results:', err);
+            }
+          }
+          
+          // Fallback for error cases or when detail fetch fails
+          return {
+            id: res.id,
+            checklistId: selectedChecklistId,
+            documentId: res.document_id,
+            status: res.status,
+            answers: [],
+            conditions: [],
+            createdAt: new Date().toISOString(),
+            error: res.error
+          };
+        })
+      );
+      
       setBatchResults(processingResults);
       setSuccessMessage(`Successfully processed ${result.results.length} document(s)!`);
       setError(null);

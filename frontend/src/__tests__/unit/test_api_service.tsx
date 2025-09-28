@@ -2,7 +2,7 @@
 import { api } from '../../services/api';
 
 // Mock fetch globally
-global.fetch = jest.fn();
+(global as any).fetch = jest.fn();
 
 describe('API Service', () => {
   beforeEach(() => {
@@ -114,7 +114,7 @@ describe('API Service', () => {
       expect(fetch).toHaveBeenCalledWith('http://localhost:8000/api/process/checklist1', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ document_id: 'document1' }),
+        body: JSON.stringify({ documentIds: ['document1'] }),
       });
       expect(result).toEqual(mockResponse);
     });
@@ -258,8 +258,8 @@ describe('API Service', () => {
       ];
 
       // Mock URL.createObjectURL and document.createElement
-      global.URL.createObjectURL = jest.fn(() => 'mock-url');
-      global.URL.revokeObjectURL = jest.fn();
+      (global as any).URL.createObjectURL = jest.fn(() => 'mock-url');
+      (global as any).URL.revokeObjectURL = jest.fn();
       
       const mockAnchor = {
         href: '',

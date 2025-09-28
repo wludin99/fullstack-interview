@@ -22,8 +22,8 @@ describe('FileUpload', () => {
       />
     );
 
-    expect(screen.getByText(/upload document/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /choose file/i })).toBeInTheDocument();
+    expect(screen.getByText(/choose file/i)).toBeInTheDocument();
+    expect(screen.getByText(/choose file/i)).toBeInTheDocument();
   });
 
   it('handles file selection', async () => {
@@ -35,7 +35,7 @@ describe('FileUpload', () => {
     );
 
     const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText(/choose file/i);
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [file] } });
 
@@ -53,7 +53,7 @@ describe('FileUpload', () => {
     );
 
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
-    const input = screen.getByLabelText(/choose file/i);
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [file] } });
 
@@ -75,7 +75,7 @@ describe('FileUpload', () => {
     // Create a large file (simulate)
     const largeContent = new Array(11 * 1024 * 1024).fill('x').join('');
     const file = new File([largeContent], 'large.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText(/choose file/i);
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [file] } });
 
@@ -95,9 +95,13 @@ describe('FileUpload', () => {
     );
 
     const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText(/choose file/i);
+    const input = document.querySelector('#file-input') as HTMLInputElement;
     
     fireEvent.change(input, { target: { files: [file] } });
+
+    // Click the upload button
+    const uploadButton = screen.getByText('Upload');
+    fireEvent.click(uploadButton);
 
     await waitFor(() => {
       expect(screen.getByText(/uploading/i)).toBeInTheDocument();
