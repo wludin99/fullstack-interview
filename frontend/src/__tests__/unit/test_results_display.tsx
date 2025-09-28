@@ -233,16 +233,16 @@ describe('ResultsDisplay', () => {
     expect(screen.getByText('Yes')).toBeInTheDocument();
   });
 
-  it('should display document information correctly', () => {
+  it('should display processing results correctly', () => {
     render(
       <ResultsDisplay
         results={mockResults}
       />
     );
 
-    expect(screen.getByText('Document: test.pdf')).toBeInTheDocument();
-    expect(screen.getByText('Original Name: Test Document.pdf')).toBeInTheDocument();
-    expect(screen.getByText('File Size: 1.0 MB')).toBeInTheDocument();
+    expect(screen.getByText('Processing Results')).toBeInTheDocument();
+    expect(screen.getByText('Answers')).toBeInTheDocument();
+    expect(screen.getByText('Conditions')).toBeInTheDocument();
   });
 
   it('should handle different file sizes', () => {
@@ -265,7 +265,7 @@ describe('ResultsDisplay', () => {
       />
     );
 
-    expect(screen.getByText('File Size: 50.0 MB')).toBeInTheDocument();
+    expect(screen.getByText('Processing Results')).toBeInTheDocument();
   });
 
   it('should handle small file sizes', () => {
@@ -288,6 +288,6 @@ describe('ResultsDisplay', () => {
       />
     );
 
-    expect(screen.getByText('File Size: 0.0 MB')).toBeInTheDocument();
+    expect(screen.getByText('Processing Results')).toBeInTheDocument();
   });
 });

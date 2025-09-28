@@ -14,7 +14,7 @@ export const BatchResultsDisplay: React.FC<BatchResultsDisplayProps> = ({
   onExport,
   onReprocess
 }) => {
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'details'>('overview');
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'details'>('details');
   const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'error'>('all');
 
   const filteredResults = results.filter(result => {
@@ -161,19 +161,38 @@ export const BatchResultsDisplay: React.FC<BatchResultsDisplayProps> = ({
                   {result.status === 'completed' && (
                     <div className="result-preview">
                       <div className="answers-preview">
-                        <strong>Sample Answers:</strong>
+                        <strong>📝 Sample Questions & Answers:</strong>
                         <ul>
                           {result.answers.slice(0, 2).map((answer, index) => (
                             <li key={index}>
-                              <span className="question-text">{answer.questionText}:</span>
-                              <span className="answer-text">{answer.answer}</span>
+                              <span className="question-text">Q{index + 1}: {answer.questionText}</span>
+                              <div className="answer-text">{answer.answer}</div>
                             </li>
                           ))}
                           {result.answers.length > 2 && (
-                            <li>... and {result.answers.length - 2} more answers</li>
+                            <li>... and {result.answers.length - 2} more questions</li>
                           )}
                         </ul>
                       </div>
+                      
+                      {result.conditions.length > 0 && (
+                        <div className="conditions-preview">
+                          <strong>🔍 Sample Conditions:</strong>
+                          <ul>
+                            {result.conditions.slice(0, 2).map((condition, index) => (
+                              <li key={index}>
+                                <span className="condition-text">C{index + 1}: {condition.conditionText}</span>
+                                <div className={`condition-result ${condition.result ? 'true' : 'false'}`}>
+                                  {condition.result ? '✅ True' : '❌ False'}
+                                </div>
+                              </li>
+                            ))}
+                            {result.conditions.length > 2 && (
+                              <li>... and {result.conditions.length - 2} more conditions</li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -182,6 +201,38 @@ export const BatchResultsDisplay: React.FC<BatchResultsDisplayProps> = ({
           </div>
         ) : (
           <div className="details-tab">
+            {filteredResults.length > 0 && (
+              <div className="details-summary">
+                <h4>📊 Processing Summary</h4>
+                <div className="summary-grid">
+                  <div className="summary-item">
+                    <span className="summary-label">Total Documents:</span>
+                    <span className="summary-value">{filteredResults.length}</span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="summary-label">Total Questions:</span>
+                    <span className="summary-value">
+                      {filteredResults.reduce((sum, r) => sum + r.answers.length, 0)}
+                    </span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="summary-label">Total Conditions:</span>
+                    <span className="summary-value">
+                      {filteredResults.reduce((sum, r) => sum + r.conditions.length, 0)}
+                    </span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="summary-label">Conditions Passed:</span>
+                    <span className="summary-value">
+                      {filteredResults.reduce((sum, r) => 
+                        sum + r.conditions.filter(c => c.result).length, 0
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {filteredResults.map((result) => (
               <div key={result.id} className="detailed-result">
                 <div className="result-document-header">
@@ -201,25 +252,37 @@ export const BatchResultsDisplay: React.FC<BatchResultsDisplayProps> = ({
                 {result.status === 'completed' && (
                   <>
                     <div className="answers-section">
-                      <h5>Answers ({result.answers.length})</h5>
+                      <h5>📝 Questions & Answers ({result.answers.length})</h5>
                       <div className="answers-list">
                         {result.answers.map((answer, index) => (
                           <div key={index} className="answer-item">
-                            <div className="question-text">{answer.questionText}</div>
-                            <div className="answer-text">{answer.answer}</div>
+                            <div className="question-header">
+                              <span className="question-number">Q{index + 1}</span>
+                              <div className="question-text">{answer.questionText}</div>
+                            </div>
+                            <div className="answer-content">
+                              <span className="answer-label">Answer:</span>
+                              <div className="answer-text">{answer.answer}</div>
+                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
 
                     <div className="conditions-section">
-                      <h5>Condition Results ({result.conditions.length})</h5>
+                      <h5>🔍 Condition Evaluations ({result.conditions.length})</h5>
                       <div className="conditions-list">
                         {result.conditions.map((condition, index) => (
                           <div key={index} className="condition-item">
-                            <div className="condition-text">{condition.conditionText}</div>
-                            <div className={`condition-result ${condition.result ? 'true' : 'false'}`}>
-                              {condition.result ? '✅ True' : '❌ False'}
+                            <div className="condition-header">
+                              <span className="condition-number">C{index + 1}</span>
+                              <div className="condition-text">{condition.conditionText}</div>
+                            </div>
+                            <div className="condition-result-container">
+                              <span className="result-label">Result:</span>
+                              <div className={`condition-result ${condition.result ? 'true' : 'false'}`}>
+                                {condition.result ? '✅ True' : '❌ False'}
+                              </div>
                             </div>
                           </div>
                         ))}

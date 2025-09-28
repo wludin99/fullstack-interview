@@ -91,3 +91,19 @@ global.BroadcastChannel = global.BroadcastChannel || class BroadcastChannel {
 global.TransformStream = global.TransformStream || class TransformStream {
   constructor() {}
 };
+
+// Request polyfill for MSW v2
+// @ts-ignore
+global.Request = global.Request || class Request {
+  constructor(input: string | Request, init?: RequestInit) {
+    this.url = typeof input === 'string' ? input : input.url;
+    this.method = init?.method || 'GET';
+    this.headers = new Headers(init?.headers);
+    this.body = init?.body;
+  }
+  
+  url: string;
+  method: string;
+  headers: Headers;
+  body: any;
+};

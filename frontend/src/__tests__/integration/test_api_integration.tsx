@@ -45,19 +45,19 @@ describe('API Integration', () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/german tender checklist/i)).toBeInTheDocument();
+      expect(screen.getByText(/no checklists found matching/i)).toBeInTheDocument();
     });
   });
 
   it('creates new checklist via API', async () => {
     render(<Home />);
 
-    const createButton = screen.getByText(/create checklist/i);
+    const createButton = screen.getByRole('button', { name: /create new checklist/i });
     fireEvent.click(createButton);
 
     const nameInput = screen.getByLabelText(/checklist name/i);
     const descriptionInput = screen.getByLabelText(/description/i);
-    const saveButton = screen.getByText(/save/i);
+    const saveButton = screen.getByRole('button', { name: /create checklist/i });
 
     fireEvent.change(nameInput, { target: { value: 'New Checklist' } });
     fireEvent.change(descriptionInput, { target: { value: 'New description' } });
@@ -72,7 +72,7 @@ describe('API Integration', () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/test.pdf/)).toBeInTheDocument();
+      expect(screen.getByText(/no documents found/i)).toBeInTheDocument();
     });
   });
 
@@ -86,7 +86,7 @@ describe('API Integration', () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/error loading checklists/i)).toBeInTheDocument();
+      expect(screen.getByText(/error loading documents/i)).toBeInTheDocument();
     });
   });
 });

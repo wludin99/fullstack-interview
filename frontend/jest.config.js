@@ -27,6 +27,12 @@ export default {
       tsconfig: 'tsconfig.jest.json',
       useESM: true
     }],
+    '^.+\\.(js|jsx)$': ['babel-jest', {
+      presets: ['@babel/preset-env']
+    }]
   },
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(msw|@mswjs|until-async)/)'
+  ],
 };
