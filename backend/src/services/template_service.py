@@ -162,8 +162,8 @@ class TemplateService:
                 question = Question(
                     id=str(uuid.uuid4()),
                     checklist_id=template_id,
-                    text=q_data["text"],
-                    order_index=q_data.get("orderIndex", 1)
+                    text=q_data.text,
+                    order_index=q_data.orderIndex
                 )
                 self.db.add(question)
         
@@ -179,8 +179,8 @@ class TemplateService:
                 condition = Condition(
                     id=str(uuid.uuid4()),
                     checklist_id=template_id,
-                    text=c_data["text"],
-                    order_index=c_data.get("orderIndex", 1)
+                    text=c_data.text,
+                    order_index=c_data.orderIndex
                 )
                 self.db.add(condition)
         

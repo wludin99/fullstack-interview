@@ -116,6 +116,7 @@ async def get_document(
         id=document.id,
         filename=document.filename,
         original_name=document.original_name,
+        file_path=document.file_path,
         file_size=document.file_size,
         status=document.status,
         uploaded_at=document.uploaded_at

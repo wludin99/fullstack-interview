@@ -163,11 +163,20 @@ class BatchProcessingService:
         # Save condition results
         if "condition_results" in llm_result:
             for condition_data in llm_result["condition_results"]:
+                # Ensure result is always a boolean
+                result_value = condition_data.get("result")
+                if result_value is None:
+                    result_value = False
+                elif isinstance(result_value, str):
+                    result_value = result_value.lower() in ['true', '1', 'yes', 'ja']
+                else:
+                    result_value = bool(result_value)
+                
                 condition_result = ConditionResult(
                     id=str(uuid.uuid4()),
                     processing_result_id=processing_result.id,
                     condition_id=condition_data.get("conditionId", ""),
-                    result=condition_data.get("result", False)
+                    result=result_value
                 )
                 self.db.add(condition_result)
     

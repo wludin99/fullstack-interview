@@ -162,7 +162,7 @@ Important:
         for i, condition in enumerate(conditions):
             condition_results.append({
                 "conditionId": f"c{i+1}",
-                "result": "true" in response_text.lower()  # Simple heuristic
+                "result": "true" in response_text.lower()  # Simple heuristic - always returns boolean
             })
         
         return {
