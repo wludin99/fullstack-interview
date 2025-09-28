@@ -7,6 +7,8 @@ import { ChecklistSelector } from '../components/ChecklistSelector';
 import { TemplateEditor } from '../components/TemplateEditor';
 import { BatchResultsDisplay } from '../components/BatchResultsDisplay';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
+import { CreateChecklistDialog } from '../components/CreateChecklistDialog';
+import { EditChecklistDialog } from '../components/EditChecklistDialog';
 
 interface Checklist {
   id: string;
@@ -60,6 +62,9 @@ export const Home: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTemplateEditor, setShowTemplateEditor] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Checklist | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingChecklist, setEditingChecklist] = useState<Checklist | null>(null);
   
   // Delete functionality state
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -108,7 +113,19 @@ export const Home: React.FC = () => {
     }
   };
 
-  const handleCreateChecklist = async (name: string, description: string, questions: string[], conditions: string[]) => {
+  const handleCreateChecklist = () => {
+    setShowCreateDialog(true);
+  };
+
+  const handleEditChecklist = (checklistId: string) => {
+    const checklist = checklists.find(c => c.id === checklistId);
+    if (checklist) {
+      setEditingChecklist(checklist);
+      setShowEditDialog(true);
+    }
+  };
+
+  const handleCreateChecklistSubmit = async (name: string, description: string, questions: string[], conditions: string[]) => {
     try {
       const response = await fetch('http://localhost:8000/api/checklists', {
         method: 'POST',
@@ -118,8 +135,8 @@ export const Home: React.FC = () => {
         body: JSON.stringify({
           name,
           description,
-          questions: questions.map(q => ({ text: q })),
-          conditions: conditions.map(c => ({ text: c }))
+          questions: questions.map((q, index) => ({ text: q, orderIndex: index })),
+          conditions: conditions.map((c, index) => ({ text: c, orderIndex: index }))
         }),
       });
 
@@ -128,11 +145,42 @@ export const Home: React.FC = () => {
         setChecklists(prev => [...prev, newChecklist]);
         setSuccessMessage('Checklist created successfully!');
         setTimeout(() => setSuccessMessage(''), 3000);
+        setShowCreateDialog(false);
       } else {
         setError('Failed to create checklist');
       }
     } catch (err) {
       setError('Error creating checklist');
+    }
+  };
+
+  const handleUpdateChecklist = async (id: string, name: string, description: string, questions: string[], conditions: string[]) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/checklists/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          description,
+          questions: questions.map((q, index) => ({ text: q, orderIndex: index })),
+          conditions: conditions.map((c, index) => ({ text: c, orderIndex: index }))
+        }),
+      });
+
+      if (response.ok) {
+        const updatedChecklist = await response.json();
+        setChecklists(prev => prev.map(c => c.id === id ? updatedChecklist : c));
+        setSuccessMessage('Checklist updated successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+        setShowEditDialog(false);
+        setEditingChecklist(null);
+      } else {
+        setError('Failed to update checklist');
+      }
+    } catch (err) {
+      setError('Error updating checklist');
     }
   };
 
@@ -390,7 +438,7 @@ export const Home: React.FC = () => {
               onChecklistSelect={setSelectedChecklistId}
               onTemplateSelect={handleTemplateEdit}
               onCreateChecklist={handleCreateChecklist}
-              onEditChecklist={handleTemplateEdit}
+              onEditChecklist={handleEditChecklist}
               onDeleteChecklist={(checklistId, checklistName) => handleDeleteClick('checklist', checklistId, checklistName)}
             />
             
@@ -439,6 +487,22 @@ export const Home: React.FC = () => {
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
         isLoading={isDeleting}
+      />
+
+      <CreateChecklistDialog
+        isOpen={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onCreateChecklist={handleCreateChecklistSubmit}
+      />
+
+      <EditChecklistDialog
+        isOpen={showEditDialog}
+        checklist={editingChecklist}
+        onClose={() => {
+          setShowEditDialog(false);
+          setEditingChecklist(null);
+        }}
+        onUpdateChecklist={handleUpdateChecklist}
       />
     </div>
   );

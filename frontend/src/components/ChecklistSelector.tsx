@@ -49,7 +49,7 @@ export const ChecklistSelector: React.FC<ChecklistSelectorProps> = ({
       <div className="selector-header">
         <h3>Choose Checklist for Processing</h3>
         <button 
-          onClick={() => setShowCreateDialog(true)} 
+          onClick={onCreateChecklist} 
           className="btn btn-secondary btn-small"
           style={{ marginTop: '1rem' }}
         >
@@ -130,12 +130,6 @@ export const ChecklistSelector: React.FC<ChecklistSelectorProps> = ({
           <p>No checklists found matching "{filter}"</p>
         </div>
       )}
-
-      <CreateChecklistDialog
-        isOpen={showCreateDialog}
-        onClose={() => setShowCreateDialog(false)}
-        onCreateChecklist={handleCreateChecklist}
-      />
     </div>
   );
 };
