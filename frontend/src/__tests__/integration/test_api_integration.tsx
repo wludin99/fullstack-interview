@@ -1,46 +1,38 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { Home } from '../../pages/Home';
 
 // Mock API server
 const server = setupServer(
-  rest.get('/api/checklists', (req, res, ctx) => {
-    return res(
-      ctx.json([
-        {
-          id: 'checklist-1',
-          name: 'German Tender Checklist',
-          description: 'Test checklist',
-          questions: [],
-          conditions: []
-        }
-      ])
-    );
-  }),
-  rest.post('/api/checklists', (req, res, ctx) => {
-    return res(
-      ctx.status(201),
-      ctx.json({
-        id: 'checklist-2',
-        name: 'New Checklist',
-        description: 'New description',
+  http.get('/api/checklists', () => {
+    return HttpResponse.json([
+      {
+        id: 'checklist-1',
+        name: 'German Tender Checklist',
+        description: 'Test checklist',
         questions: [],
         conditions: []
-      })
-    );
+      }
+    ]);
   }),
-  rest.get('/api/documents', (req, res, ctx) => {
-    return res(
-      ctx.json([
-        {
-          id: 'document-1',
-          filename: 'test.pdf',
-          status: 'uploaded'
-        }
-      ])
-    );
+  http.post('/api/checklists', () => {
+    return HttpResponse.json({
+      id: 'checklist-2',
+      name: 'New Checklist',
+      description: 'New description',
+      questions: [],
+      conditions: []
+    }, { status: 201 });
+  }),
+  http.get('/api/documents', () => {
+    return HttpResponse.json([
+      {
+        id: 'document-1',
+        filename: 'test.pdf',
+        status: 'uploaded'
+      }
+    ]);
   })
 );
 
@@ -86,8 +78,8 @@ describe('API Integration', () => {
 
   it('handles API errors gracefully', async () => {
     server.use(
-      rest.get('/api/checklists', (req, res, ctx) => {
-        return res(ctx.status(500), ctx.json({ error: 'Server error' }));
+      http.get('/api/checklists', () => {
+        return HttpResponse.json({ error: 'Server error' }, { status: 500 });
       })
     );
 

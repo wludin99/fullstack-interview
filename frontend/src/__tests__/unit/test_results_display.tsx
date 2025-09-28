@@ -35,14 +35,6 @@ describe('ResultsDisplay', () => {
     createdAt: '2024-01-01T00:00:00Z'
   };
 
-  const mockDocument = {
-    id: 'document1',
-    filename: 'test.pdf',
-    original_name: 'Test Document.pdf',
-    file_path: '/uploads/test.pdf',
-    file_size: 1024000,
-    status: 'processed'
-  };
 
   it('should render results display with answers and conditions', () => {
     render(
@@ -254,14 +246,22 @@ describe('ResultsDisplay', () => {
   });
 
   it('should handle different file sizes', () => {
-    const largeDocument = {
-      ...mockDocument,
-      file_size: 50 * 1024 * 1024 // 50MB
+    const mockResultsWithLargeFile = {
+      ...mockResults,
+      documentId: 'document1',
+      document: {
+        id: 'document1',
+        filename: 'test.pdf',
+        original_name: 'Test Document.pdf',
+        file_path: '/uploads/test.pdf',
+        file_size: 50 * 1024 * 1024, // 50MB
+        status: 'processed'
+      }
     };
 
     render(
       <ResultsDisplay
-        results={mockResults}
+        results={mockResultsWithLargeFile}
       />
     );
 
@@ -269,14 +269,22 @@ describe('ResultsDisplay', () => {
   });
 
   it('should handle small file sizes', () => {
-    const smallDocument = {
-      ...mockDocument,
-      file_size: 512 // 512 bytes
+    const mockResultsWithSmallFile = {
+      ...mockResults,
+      documentId: 'document1',
+      document: {
+        id: 'document1',
+        filename: 'test.pdf',
+        original_name: 'Test Document.pdf',
+        file_path: '/uploads/test.pdf',
+        file_size: 512, // 512 bytes
+        status: 'processed'
+      }
     };
 
     render(
       <ResultsDisplay
-        results={mockResults}
+        results={mockResultsWithSmallFile}
       />
     );
 

@@ -5,19 +5,17 @@ import { Home } from '../../pages/Home';
 
 // Mock API server for German tender workflow
 const server = setupServer(
-  rest.get('/api/checklists', (req, res, ctx) => {
-    return res(ctx.json([]));
+  http.get('/api/checklists', () => {
+    return HttpResponse.json([]);
   }),
-  rest.post('/api/checklists', (req, res, ctx) => {
-    return res(
-      ctx.status(201),
-      ctx.json({
-        id: 'checklist-1',
-        name: 'Deutsche Ausschreibung Checkliste',
-        description: 'Standard-Checkliste für deutsche öffentliche Ausschreibungen',
-        questions: [
-          {
-            id: 'q1',
+  http.post('/api/checklists', () => {
+    return HttpResponse.json({
+      id: 'checklist-1',
+      name: 'Deutsche Ausschreibung Checkliste',
+      description: 'Standard-Checkliste für deutsche öffentliche Ausschreibungen',
+      questions: [
+        {
+          id: 'q1',
             text: 'In welcher Form sind die Angebote/Teilnahmeanträge einzureichen?',
             orderIndex: 1
           },
@@ -34,54 +32,45 @@ const server = setupServer(
             orderIndex: 1
           }
         ]
-      })
-    );
+      });
   }),
-  rest.post('/api/upload', (req, res, ctx) => {
-    return res(
-      ctx.status(201),
-      ctx.json({
-        id: 'document-1',
-        filename: 'Bewerbungsbedingungen.pdf',
-        status: 'uploaded'
-      })
-    );
+  http.post('/api/upload', () => {
+    return HttpResponse.json({
+      id: 'document-1',
+      filename: 'Bewerbungsbedingungen.pdf',
+      status: 'uploaded'
+    }, { status: 201 });
   }),
-  rest.post('/api/process/:checklistId', (req, res, ctx) => {
-    return res(
-      ctx.status(202),
-      ctx.json({
-        id: 'result-1',
-        status: 'processing'
-      })
-    );
+  http.post('/api/process/:checklistId', () => {
+    return HttpResponse.json({
+      id: 'result-1',
+      status: 'processing'
+    }, { status: 202 });
   }),
-  rest.get('/api/results/:id', (req, res, ctx) => {
-    return res(
-      ctx.json({
-        id: 'result-1',
-        status: 'completed',
-        answers: [
-          {
-            questionId: 'q1',
-            questionText: 'In welcher Form sind die Angebote/Teilnahmeanträge einzureichen?',
-            answer: 'Elektronisch über das Vergabeportal'
-          },
-          {
-            questionId: 'q2',
-            questionText: 'Wann ist die Frist für die Einreichung von Bieterfragen?',
-            answer: 'Bis zum 15. März 2024, 12:00 Uhr'
-          }
-        ],
-        conditions: [
-          {
-            conditionId: 'c1',
-            conditionText: 'Ist das Angebot vollständig und fristgerecht eingegangen?',
-            result: true
-          }
-        ]
-      })
-    );
+  http.get('/api/results/:id', () => {
+    return HttpResponse.json({
+      id: 'result-1',
+      status: 'completed',
+      answers: [
+        {
+          questionId: 'q1',
+          questionText: 'In welcher Form sind die Angebote/Teilnahmeanträge einzureichen?',
+          answer: 'Elektronisch über das Vergabeportal'
+        },
+        {
+          questionId: 'q2',
+          questionText: 'Wann ist die Frist für die Einreichung von Bieterfragen?',
+          answer: 'Bis zum 15. März 2024, 12:00 Uhr'
+        }
+      ],
+      conditions: [
+        {
+          conditionId: 'c1',
+          conditionText: 'Ist das Angebot vollständig und fristgerecht eingegangen?',
+          result: true
+        }
+      ]
+    });
   })
 );
 
@@ -203,8 +192,8 @@ describe('Complete German Tender Workflow', () => {
 
   it('handles German tender document errors gracefully', async () => {
     server.use(
-      rest.post('/api/upload', (req, res, ctx) => {
-        return res(ctx.status(400), ctx.json({ error: 'Invalid file format' }));
+      http.post('/api/upload', () => {
+        return HttpResponse.json({ error: 'Invalid file format' }, { status: 400 });
       })
     );
 

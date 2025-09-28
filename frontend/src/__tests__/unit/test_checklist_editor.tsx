@@ -81,18 +81,6 @@ describe('ChecklistEditor', () => {
   });
 
   it('should remove question when remove button is clicked', async () => {
-    const existingChecklist = {
-      id: '1',
-      name: 'Test Checklist',
-      description: 'Test description',
-      questions: [
-        { id: 'q1', text: 'Test question?', order_index: 1 }
-      ],
-      conditions: [],
-      created_at: '2024-01-01',
-      updated_at: '2024-01-01'
-    };
-
     render(
       <ChecklistEditor
         onSave={mockOnSave}
